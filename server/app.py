@@ -39,7 +39,7 @@ except ImportError:
     except Exception:
         _has_env = False
 
-# 4. CREATE APP (only if all deps available)
+# 4. CREATE APP
 if _has_openenv and _has_env:
     app = create_app(
         ApiWorkflowEnvironment,
@@ -49,7 +49,6 @@ if _has_openenv and _has_env:
         max_concurrent_envs=4,
     )
 else:
-    # Fallback: bare FastAPI app so the module is always importable
     from fastapi import FastAPI
     app = FastAPI()
 
@@ -57,10 +56,10 @@ else:
     def health():
         return {"status": "ok"}
 
-# 5. MAIN ENTRY POINT - must always be present and callable
+# 5. MAIN ENTRY POINT
 def main(host: str = "0.0.0.0", port: int = 7860):
     import uvicorn
-    uvicorn.run("app:app", host=host, port=port)
+    uvicorn.run("server.app:app", host=host, port=port)
 
 if __name__ == "__main__":
     import argparse
@@ -69,5 +68,3 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=7860)
     args = parser.parse_args()
     main(host=args.host, port=args.port)
-   
-   
