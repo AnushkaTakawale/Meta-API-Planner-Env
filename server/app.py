@@ -6,11 +6,9 @@ from typing import Union
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 
-# Add both the root and the server folder to path
+# Ensure the root directory is at the front of the path
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
 
 # 2. CORE OPENENV IMPORT
 try:
@@ -21,17 +19,18 @@ except ImportError:
 # 3. ABSOLUTE IMPORTS
 import models
 
-# Explicitly importing the inference file (renamed from api_workflow_env_environment)
+# Targeted import for inference.py from the root
 try:
     from inference import ApiWorkflowEnvironment
 except ImportError:
-    # If the standard import fails, we use the manual path-based import
     import importlib.util
+    # Constructing absolute path to inference.py at repo root
     file_path = os.path.join(project_root, "inference.py")
     spec = importlib.util.spec_from_file_location("inference", file_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not find inference.py at {file_path}")
     env_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(env_module)
-    # This assumes your Class inside inference.py is named ApiWorkflowEnvironment
     ApiWorkflowEnvironment = env_module.ApiWorkflowEnvironment
 
 # 4. CREATE APP
@@ -43,13 +42,17 @@ app = create_app(
     max_concurrent_envs=1,
 )
 
-def main(host: str = "0.0.0.0", port: int = 8000):
+# 5. RUN SERVER (Port 7860 is mandatory for Hugging Face)
+def main(host: str = "0.0.0.0", port: int = 7860):
     import uvicorn
     uvicorn.run(app, host=host, port=port)
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=8000)
+    # Defaulting to 7860 for Hugging Face compatibility
+    parser.add_argument("--port", type=int, default=7860)
     args = parser.parse_args()
     main(port=args.port)
+
+
