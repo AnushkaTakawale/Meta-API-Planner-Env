@@ -19,19 +19,19 @@ except ImportError:
     raise ImportError("openenv library not found in container.")
 
 # 3. ABSOLUTE IMPORTS
-# We import 'models' first to confirm the project_root is accessible
 import models
 
-# Explicitly importing the environment file
+# Explicitly importing the inference file (renamed from api_workflow_env_environment)
 try:
-    from api_workflow_env_environment import ApiWorkflowEnvironment
+    from inference import ApiWorkflowEnvironment
 except ImportError:
-    # If the standard import fails, we use a manual path-based import
+    # If the standard import fails, we use the manual path-based import
     import importlib.util
-    file_path = os.path.join(project_root, "api_workflow_env_environment.py")
-    spec = importlib.util.spec_from_file_location("api_workflow_env_environment", file_path)
+    file_path = os.path.join(project_root, "inference.py")
+    spec = importlib.util.spec_from_file_location("inference", file_path)
     env_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(env_module)
+    # This assumes your Class inside inference.py is named ApiWorkflowEnvironment
     ApiWorkflowEnvironment = env_module.ApiWorkflowEnvironment
 
 # 4. CREATE APP
